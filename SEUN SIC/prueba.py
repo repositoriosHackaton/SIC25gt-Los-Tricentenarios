@@ -8,6 +8,7 @@ from kivy.graphics.texture import Texture
 import cv2
 import mediapipe as mp
 
+
 def distancia_euclidiana(p1, p2):
     d = ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
     return d
@@ -31,7 +32,6 @@ def draw_bounding_box(image, hand_landmarks):
 
     cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
 
-#interfaz gráfica
 
 class MainApp(App):
     def build(self):
@@ -40,47 +40,46 @@ class MainApp(App):
         self.image_widget = Image()
         self.layout.add_widget(self.image_widget)
 
-        # Panel txt 
+
         self.text_panel = TextInput(
-            readonly=True,  #no modificable
-            multiline=True,  # múltiples líneas de texto
-            size_hint=(1, 0.3),  
-            background_color=(0.9, 0.9, 0.9, 1), 
-            foreground_color=(0, 0, 0, 1),
-            font_size=20  
+            readonly=True, 
+            multiline=True,  
+            size_hint=(1, 0.3), 
+            background_color=(0.9, 0.9, 0.9, 1),  
+            foreground_color=(0, 0, 0, 1),  
+            font_size=20 
         )
         self.layout.add_widget(self.text_panel)
 
-        # Botón para agregar
+
         self.boton_agregar = Button(
-            text="Agregar letra", 
-            size_hint=(1, 0.1), 
+            text="Agregar letra",
+            size_hint=(1, 0.1),  
             background_color=(0.2, 0.6, 1, 1), 
-            color=(1, 1, 1, 1)  
+            color=(1, 1, 1, 1) 
         )
-        # evento del botón
+        
         self.boton_agregar.bind(on_press=self.agregar_letra)
         self.layout.add_widget(self.boton_agregar)
 
-        # Botón para espacios
         self.boton_espacio = Button(
-            text="Agregar Espacio",  
-            size_hint=(1, 0.1),  
-            background_color=(0.5, 0.6, 1, 1), 
-            color=(1, 1, 1, 1) 
+            text="Agregar Espacio", 
+            size_hint=(1, 0.1),
+            background_color=(0.5, 0.6, 1, 1),
+            color=(1, 1, 1, 1)
         )
         
         self.boton_espacio.bind(on_press=self.agregar_espacio)
         self.layout.add_widget(self.boton_espacio)
 
-        # Botón saltos de linea
+
         self.boton_salto = Button(
-            text="Agregar Salto de linea",  
-            size_hint=(1, 0.1),  
-            background_color=(0.1, 0.6, 1, 1), 
-            color=(1, 1, 1, 1)  
+            text="Agregar Salto de linea",
+            size_hint=(1, 0.1),
+            background_color=(0.1, 0.6, 1, 1),
+            color=(1, 1, 1, 1)
         )
-        # Vincular evento al botón
+        
         self.boton_salto.bind(on_press=self.agregar_salto)
         self.layout.add_widget(self.boton_salto)
 
@@ -88,7 +87,6 @@ class MainApp(App):
         self.cap.set(3, 640)
         self.cap.set(4, 480)
 
-        #  MediaPipe Hands
         self.mp_hands = mp.solutions.hands
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
@@ -119,6 +117,7 @@ class MainApp(App):
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
+
                 self.mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
@@ -126,6 +125,7 @@ class MainApp(App):
                     self.mp_drawing_styles.get_default_hand_landmarks_style(),
                     self.mp_drawing_styles.get_default_hand_connections_style()
                 )
+
 
                 draw_bounding_box(image, hand_landmarks)
 
@@ -142,7 +142,7 @@ class MainApp(App):
     def detect_letter(self, hand_landmarks, image_shape, image):
         image_height, image_width, _ = image_shape
 
-        #Corrdenadas de las manos
+
         index_finger_tip = (int(hand_landmarks.landmark[8].x * image_width),
                             int(hand_landmarks.landmark[8].y * image_height))
         index_finger_pip = (int(hand_landmarks.landmark[6].x * image_width),
@@ -184,10 +184,10 @@ class MainApp(App):
                 ring_finger_tip[1] > ring_finger_pip[1] and \
                 pinky_tip[1] > pinky_pip[1]:
             current_letter = 'A'
-            # Dibujar la letra en camara
+            # Dibujar la letra en la camara
             cv2.putText(image, 'A', (70, 90),
                   cv2.FONT_HERSHEY_SIMPLEX, 
-                  3.0, (20, 219, 26), 10)
+                  3.0, (20, 219, 26), 10) 
             
             
 
@@ -381,22 +381,20 @@ class MainApp(App):
     
         return current_letter
 
-    # Función para agregar la letra
     def agregar_letra(self, instance):
         if self.current_letter is not None:
             self.text_panel.text += self.current_letter 
-            self.current_letter = None  # Reinicia la letra detectada
+            self.current_letter = None  
 
-    def agregar_espacio(self, instance):# agregar espacios
+    def agregar_espacio(self, instance):
         self.text_panel.text += " "
 
-    def agregar_salto(self, instance):# agregar saltos
+    def agregar_salto(self, instance):
         self.text_panel.text += "\n"
 
 
     def on_stop(self):
         self.cap.release()
 
-# Ejecutar la aplicación
 if __name__ == '__main__':
     MainApp().run()
